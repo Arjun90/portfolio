@@ -4,663 +4,360 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Tracker — Live</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Portfolio Tracker</title>
 <style>
-:root{--bg:#060810;--s1:#0b0d14;--s2:#10121a;--s3:#151720;--border:#1c1f2e;--border2:#252838;--text:#eceef8;--muted:#5c6080;--dim:#30334a;--green:#00e5a0;--green2:rgba(0,229,160,.12);--red:#ff4466;--red2:rgba(255,68,102,.12);--amber:#f5c842;--amber2:rgba(245,200,66,.1);--blue:#5b8fff;--blue2:rgba(91,143,255,.1);--purple:#a78bfa;--purple2:rgba(167,139,250,.1);--orig:#f5c842;--arjun:#00e5a0;--claude:#5b8fff;--hfea:#ff4466;--bench:#8899bb;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;min-height:100vh;}
-.header{padding:18px 28px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-.logo{display:flex;align-items:center;gap:12px;}
-.logo-mark{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--blue));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#060810;}
-.logo h1{font-size:15px;font-weight:700;}.logo p{font-size:10px;color:var(--muted);font-family:'Syne Mono',monospace;}
-.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.rbtn{background:var(--s3);border:1px solid var(--border2);color:var(--text);padding:7px 14px;border-radius:6px;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;}
-.rbtn:hover{background:var(--border2);}
-.sdot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
-.sdot.live{background:var(--green);animation:pulse 2s infinite;}
-.sdot.partial{background:var(--amber);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-.lupd{font-size:10px;color:var(--muted);font-family:'Syne Mono',monospace;}
-.keybar{display:none;}
-.keylbl{font-size:10px;color:var(--muted);white-space:nowrap;}
-.keyinput{background:var(--s3);border:1px solid var(--border2);color:var(--text);padding:6px 12px;border-radius:6px;font-family:'Syne Mono',monospace;font-size:11px;flex:1;min-width:200px;max-width:340px;}
-.keyinput:focus{outline:none;border-color:var(--amber);}
-.keysave{background:var(--amber);color:#060810;border:none;padding:6px 14px;border-radius:6px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
-.keystatus{font-size:10px;font-family:'Syne Mono',monospace;}
-.statusbar{padding:8px 28px;font-size:11px;display:none;align-items:center;gap:8px;line-height:1.5;}
-.statusbar.err{background:rgba(255,68,102,.08);border-bottom:1px solid rgba(255,68,102,.2);color:var(--red);display:flex;}
-.statusbar.ok{background:rgba(0,229,160,.05);border-bottom:1px solid rgba(0,229,160,.1);color:var(--green);display:flex;}
-.statusbar.warn{background:rgba(245,200,66,.06);border-bottom:1px solid rgba(245,200,66,.15);color:var(--amber);display:flex;}
-.nav{display:flex;gap:2px;padding:12px 28px 0;border-bottom:1px solid var(--border);background:var(--s1);overflow-x:auto;}
-.nt{padding:8px 16px 11px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Syne',sans-serif;white-space:nowrap;transition:all .15s;}
-.nt.active,.nt:hover{border-bottom-color:currentColor;}
-.nt.orig{color:var(--orig);}.nt.arjun{color:var(--arjun);}.nt.claude{color:var(--claude);}.nt.hfea{color:var(--hfea);}.nt.all-{color:var(--purple);}.nt.news-{color:var(--amber);}.nt.rev-{color:#a78bfa;}
-.main{padding:20px 28px;}
-.pv{display:none;}.pv.active{display:block;}
-.sl{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.sl::after{content:'';flex:1;height:1px;background:var(--border);}
-.cg4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.pc{background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:16px;position:relative;overflow:hidden;}
-.pc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.pc.orig::before{background:var(--orig);}.pc.arjun::before{background:var(--arjun);}.pc.claude::before{background:var(--claude);}.pc.hfea::before{background:var(--hfea);}
-.pc-l{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;}
-.pc-n{font-size:12px;font-weight:700;margin-bottom:10px;}
-.pc-v{font-size:22px;font-weight:700;letter-spacing:-.5px;font-family:'Syne Mono',monospace;margin-bottom:3px;}
-.pc-c{font-size:13px;font-weight:600;margin-top:2px;}.pc-a{font-size:10px;margin-top:4px;}.pc-cov{font-size:9px;color:var(--dim);margin-top:3px;font-family:'Syne Mono',monospace;}
-.csec{background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:18px;margin-bottom:20px;}
-.chdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
-.ct{font-size:12px;font-weight:600;}
-.cleg{display:flex;flex-wrap:wrap;gap:8px 14px;}
-.cli{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
-.cld{width:8px;height:8px;border-radius:2px;}
-.cw260{height:260px;position:relative;}.cw200{height:200px;position:relative;}
-.hsec{background:var(--s2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:20px;}
-.shdr{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-.sht{font-size:12px;font-weight:600;}
-.tw{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:8px 13px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--s3);}
-th.r,td.r{text-align:right;}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
-tbody tr:hover{background:var(--s3);}
-td{padding:9px 13px;font-size:11px;white-space:nowrap;}
-.tk{font-family:'Syne Mono',monospace;font-weight:600;font-size:12px;}
-.pos{color:var(--green);}.neg{color:var(--red);}.neu{color:var(--muted);}.warn{color:var(--amber);}
-.as{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
-.ac{background:var(--s2);padding:13px 15px;}
-.al{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;}
-.av{font-size:20px;font-weight:700;font-family:'Syne Mono',monospace;}
-.ab{font-size:10px;color:var(--muted);margin-top:2px;}
-.ng{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
-.nc{background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:16px;}
-.nch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.nct{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
-.nb{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:.5px;}
-.nb-a{background:var(--purple2);color:var(--purple);}
-.ni{padding:9px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;}
-.ni:last-child{border-bottom:none;padding-bottom:0;}
-.nitk{font-family:'Syne Mono',monospace;font-size:10px;font-weight:600;min-width:40px;color:var(--amber);}
-.nitx{font-size:11px;color:var(--muted);line-height:1.5;}
-.niti{font-size:9px;color:var(--dim);margin-top:2px;font-family:'Syne Mono',monospace;}
-.abtn{width:100%;padding:10px;background:var(--s3);border:1px dashed var(--border2);color:var(--muted);border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:.5px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
-.abtn:hover{background:var(--border2);color:var(--text);}
-.rs{background:var(--s2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:20px;}
-.rsh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.rst{font-size:13px;font-weight:700;}.rss{font-size:10px;color:var(--muted);margin-top:2px;}
-.rrb{background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(91,143,255,.2));border:1px solid rgba(167,139,250,.3);color:var(--purple);padding:8px 16px;border-radius:6px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .2s;display:flex;align-items:center;gap:6px;}
-.rrb:hover{background:linear-gradient(135deg,rgba(167,139,250,.3),rgba(91,143,255,.3));}
-.rb{padding:20px;min-height:160px;}
-.re{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;color:var(--muted);gap:8px;text-align:center;}
-.rei{font-size:28px;opacity:.3;}
-.rc{display:none;}.rc.on{display:block;}
-.rd{font-size:10px;color:var(--muted);font-family:'Syne Mono',monospace;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-.ib{margin-bottom:14px;}
-.itag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
-.tag-bull{background:var(--green2);color:var(--green);}.tag-bear{background:var(--red2);color:var(--red);}.tag-neutral{background:var(--blue2);color:var(--blue);}.tag-action{background:var(--amber2);color:var(--amber);}.tag-watch{background:var(--purple2);color:var(--purple);}
-.itext{font-size:12px;color:var(--text);line-height:1.7;}
-.rhi{border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:8px;overflow-x:auto;align-items:center;}
-.hp{flex-shrink:0;padding:4px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:20px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'Syne Mono',monospace;transition:all .15s;}
-.hp:hover,.hp.on{border-color:var(--purple);color:var(--purple);background:var(--purple2);}
-.dbw{width:80px;height:6px;background:var(--s3);border-radius:3px;overflow:hidden;}
-.dbf{height:100%;border-radius:3px;transition:width .3s;}
-.abar{background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:8px;padding:11px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:11px;}
-.abar.hidden{display:none;}
-.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:sp .7s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg);}}
-@media(max-width:900px){.cg4{grid-template-columns:1fr 1fr;}.as{grid-template-columns:repeat(3,1fr);}.ng{grid-template-columns:1fr;}}
-@media(max-width:600px){.main,.header,.nav,.keybar{padding-left:14px;padding-right:14px;}.cg4,.as{grid-template-columns:1fr 1fr;}}
+body{background:#060810;color:#eceef8;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;}
+.hdr{background:#0b0d14;border-bottom:1px solid #1c1f2e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.logo{display:flex;align-items:center;gap:10px;}
+.mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#00e5a0,#5b8fff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#060810;font-size:16px;}
+h1{font-size:15px;font-weight:700;}
+.sub{font-size:10px;color:#5c6080;margin-top:2px;}
+#lupd{font-size:11px;color:#5c6080;}
+.rbtn{background:#151720;border:1px solid #252838;color:#eceef8;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+#sbar{padding:8px 20px;font-size:12px;display:none;line-height:1.5;}
+#sbar.ok{background:rgba(0,229,160,.05);border-bottom:1px solid rgba(0,229,160,.1);color:#00e5a0;display:block;}
+#sbar.err{background:rgba(255,68,102,.08);border-bottom:1px solid rgba(255,68,102,.2);color:#ff4466;display:block;}
+#sbar.warn{background:rgba(245,200,66,.06);border-bottom:1px solid rgba(245,200,66,.15);color:#f5c842;display:block;}
+.nav{background:#0b0d14;border-bottom:1px solid #1c1f2e;display:flex;overflow-x:auto;padding:0 16px;}
+.nav button{padding:12px 14px;background:none;border:none;border-bottom:2px solid transparent;color:#5c6080;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;}
+.nav button.on{border-bottom-color:currentColor;}
+.n-all{color:#a78bfa!important;} .n-orig{color:#f5c842!important;} .n-arjun{color:#00e5a0!important;}
+.n-claude{color:#5b8fff!important;} .n-hfea{color:#ff4466!important;} .n-news{color:#f5c842!important;} .n-rev{color:#a78bfa!important;}
+.page{display:none;padding:16px 20px;} .page.on{display:block;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.pcard{background:#10121a;border:1px solid #252838;border-radius:10px;padding:14px;}
+.pcard-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#5c6080;margin-bottom:4px;}
+.pcard-name{font-size:12px;font-weight:700;margin-bottom:8px;}
+.pcard-val{font-size:22px;font-weight:700;margin-bottom:3px;}
+.pcard-chg{font-size:12px;font-weight:600;}
+.pcard-meta{font-size:10px;color:#5c6080;margin-top:3px;}
+.pos{color:#00e5a0;} .neg{color:#ff4466;} .mu{color:#5c6080;}
+.card{background:#10121a;border:1px solid #252838;border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.card-hdr{padding:12px 14px;border-bottom:1px solid #1c1f2e;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.card-title{font-size:13px;font-weight:600;}
+.card-sub{font-size:10px;color:#5c6080;}
+.tbl{width:100%;border-collapse:collapse;overflow-x:auto;}
+.tbl th{padding:8px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#5c6080;border-bottom:1px solid #1c1f2e;background:#151720;white-space:nowrap;}
+.tbl th:first-child{text-align:left;}
+.tbl td{padding:9px 12px;font-size:12px;border-bottom:1px solid #1c1f2e;text-align:right;white-space:nowrap;}
+.tbl td:first-child{text-align:left;font-weight:600;}
+.tbl tr:last-child td{border-bottom:none;}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.mini{background:#10121a;border:1px solid #252838;border-radius:8px;padding:12px;}
+.mini-l{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#5c6080;margin-bottom:5px;}
+.mini-v{font-size:16px;font-weight:700;}
+.abtn{width:100%;padding:12px;background:#151720;border:1px dashed #252838;color:#5c6080;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-top:4px;font-family:inherit;}
+.ng{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.ni{padding:8px 0;border-bottom:1px solid #1c1f2e;display:flex;gap:8px;}
+.ni:last-child{border-bottom:none;}
+.nitk{font-size:10px;font-weight:600;color:#f5c842;min-width:38px;font-family:monospace;}
+.nitx{font-size:11px;color:#5c6080;line-height:1.5;}
+.ai-badge{font-size:9px;background:rgba(167,139,250,.1);color:#a78bfa;padding:2px 8px;border-radius:10px;font-weight:600;}
+.rrb{background:linear-gradient(135deg,rgba(167,139,250,.2),rgba(91,143,255,.2));border:1px solid rgba(167,139,250,.3);color:#a78bfa;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.itag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.t-bull{background:rgba(0,229,160,.12);color:#00e5a0;} .t-bear{background:rgba(255,68,102,.12);color:#ff4466;}
+.t-neutral{background:rgba(91,143,255,.1);color:#5b8fff;} .t-action{background:rgba(245,200,66,.1);color:#f5c842;} .t-watch{background:rgba(167,139,250,.1);color:#a78bfa;}
+.iblock{margin-bottom:14px;}
+.itext{font-size:12px;line-height:1.7;}
+.empty{text-align:center;padding:40px 20px;color:#5c6080;font-size:13px;}
+.dbw{width:60px;height:5px;background:#151720;border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.dbf{height:100%;border-radius:3px;}
+.tbl-wrap{overflow-x:auto;}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="hdr">
   <div class="logo">
-    <div class="logo-mark">&#9650;</div>
-    <div><h1>Portfolio Tracker</h1><p>LEVERAGED PORTFOLIO &middot; FMP LIVE DATA</p></div>
+    <div class="mark">&#9650;</div>
+    <div><h1>Portfolio Tracker</h1><div class="sub">LEVERAGED PORTFOLIO &middot; FMP LIVE</div></div>
   </div>
-  <div class="hdr-r">
-    <div class="lupd" id="lupd">Not loaded</div>
-    <div class="sdot" id="sdot"></div>
-    <button class="rbtn" onclick="refreshAll()"><span id="ri">&#8635;</span> Refresh</button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div id="lupd">Not loaded</div>
+    <button class="rbtn" onclick="doLoad()">&#8635; Refresh</button>
   </div>
 </div>
 
-<div class="keybar">
-  <span class="keylbl">FMP API Key:</span>
-  <input class="keyinput" id="keyInput" type="text" placeholder="Paste FMP key here" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <button class="keysave" onclick="saveKey()">Load Prices</button>
-  <span class="keystatus" id="keyStatus" style="color:var(--muted)">Enter key to begin</span>
-</div>
-
-<div class="statusbar" id="statusbar"></div>
+<div id="sbar"></div>
 
 <div class="nav">
-  <button class="nt all- active" onclick="sw('all',this)">&#11041; Overview</button>
-  <button class="nt orig" onclick="sw('orig',this)">&#9672; Original</button>
-  <button class="nt arjun" onclick="sw('arjun',this)">&#9733; Arjun v2</button>
-  <button class="nt claude" onclick="sw('claude',this)">&#9670; Claude Ideal</button>
-  <button class="nt hfea" onclick="sw('hfea',this)">&#11039; HFEA</button>
-  <button class="nt news-" onclick="sw('news',this)">&#9673; News</button>
-  <button class="nt rev-" onclick="sw('review',this)">&#10022; Daily Review</button>
+  <button class="n-all on" onclick="goTab('all',this)">&#11041; Overview</button>
+  <button class="n-orig" onclick="goTab('orig',this)">&#9672; Original</button>
+  <button class="n-arjun" onclick="goTab('arjun',this)">&#9733; Arjun v2</button>
+  <button class="n-claude" onclick="goTab('claude',this)">&#9670; Claude Ideal</button>
+  <button class="n-hfea" onclick="goTab('hfea',this)">&#11039; HFEA</button>
+  <button class="n-news" onclick="goTab('news',this)">&#9673; News</button>
+  <button class="n-rev" onclick="goTab('rev',this)">&#10022; Review</button>
 </div>
 
-<div class="pv active" id="pv-all"><div class="main">
-  <div class="sl">Live Portfolio Comparison &mdash; All starting from $122,066 &middot; Today&#39;s change only</div>
-  <div class="cg4">
-    <div class="pc orig"><div class="pc-l">Original Holdings</div><div class="pc-n" style="color:var(--orig)">As-Was</div><div class="pc-v" id="v-orig">&mdash;</div><div class="pc-c" id="c-orig"></div><div class="pc-a" id="a-orig"></div><div class="pc-cov" id="cov-orig"></div></div>
-    <div class="pc arjun"><div class="pc-l">Recommended &#9733;</div><div class="pc-n" style="color:var(--arjun)">Arjun v2</div><div class="pc-v" id="v-arjun">&mdash;</div><div class="pc-c" id="c-arjun"></div><div class="pc-a" id="a-arjun"></div><div class="pc-cov" id="cov-arjun"></div></div>
-    <div class="pc claude"><div class="pc-l">Max Upside</div><div class="pc-n" style="color:var(--claude)">Claude Ideal</div><div class="pc-v" id="v-claude">&mdash;</div><div class="pc-c" id="c-claude"></div><div class="pc-a" id="a-claude"></div><div class="pc-cov" id="cov-claude"></div></div>
-    <div class="pc hfea"><div class="pc-l">Community</div><div class="pc-n" style="color:var(--hfea)">HFEA 55/45</div><div class="pc-v" id="v-hfea">&mdash;</div><div class="pc-c" id="c-hfea"></div><div class="pc-a" id="a-hfea"></div><div class="pc-cov" id="cov-hfea"></div></div>
-  </div>
-  <div class="csec">
-    <div class="chdr">
-      <div><div class="ct">Performance Since Open</div><div style="font-size:10px;color:var(--muted);margin-top:2px">All indexed to $122,066 &middot; Auto-refreshes every 5min market hours</div></div>
-      <div class="cleg">
-        <div class="cli"><div class="cld" style="background:var(--orig)"></div>Original</div>
-        <div class="cli"><div class="cld" style="background:var(--arjun)"></div>Arjun v2</div>
-        <div class="cli"><div class="cld" style="background:var(--claude)"></div>Claude Ideal</div>
-        <div class="cli"><div class="cld" style="background:var(--hfea)"></div>HFEA</div>
-        <div class="cli"><div class="cld" style="background:var(--bench)"></div>S&amp;P 500</div>
-      </div>
-    </div>
-    <div class="cw260"><canvas id="perfChart"></canvas></div>
-  </div>
-  <div class="hsec">
-    <div class="shdr"><div class="sht">Summary Table</div><div style="font-size:10px;color:var(--muted)">Today&#39;s % change applied to $122,066</div></div>
-    <div class="tw"><table>
-      <thead><tr><th>Portfolio</th><th class="r">Value</th><th class="r">$ Change</th><th class="r">% Today</th><th class="r">Alpha vs S&amp;P</th><th class="r">Coverage</th></tr></thead>
-      <tbody>
-        <tr><td style="color:var(--orig);font-weight:600">Original</td><td class="r" id="tv-orig">&mdash;</td><td class="r" id="tc-orig">&mdash;</td><td class="r" id="tp-orig">&mdash;</td><td class="r" id="ta-orig">&mdash;</td><td class="r" id="tcov-orig">&mdash;</td></tr>
-        <tr style="background:rgba(0,229,160,.03)"><td style="color:var(--arjun);font-weight:600">Arjun v2 &#9733;</td><td class="r" id="tv-arjun">&mdash;</td><td class="r" id="tc-arjun">&mdash;</td><td class="r" id="tp-arjun">&mdash;</td><td class="r" id="ta-arjun">&mdash;</td><td class="r" id="tcov-arjun">&mdash;</td></tr>
-        <tr><td style="color:var(--claude);font-weight:600">Claude Ideal</td><td class="r" id="tv-claude">&mdash;</td><td class="r" id="tc-claude">&mdash;</td><td class="r" id="tp-claude">&mdash;</td><td class="r" id="ta-claude">&mdash;</td><td class="r" id="tcov-claude">&mdash;</td></tr>
-        <tr><td style="color:var(--hfea);font-weight:600">HFEA 55/45</td><td class="r" id="tv-hfea">&mdash;</td><td class="r" id="tc-hfea">&mdash;</td><td class="r" id="tp-hfea">&mdash;</td><td class="r" id="ta-hfea">&mdash;</td><td class="r" id="tcov-hfea">&mdash;</td></tr>
-        <tr style="background:var(--s3)"><td style="color:var(--bench)">S&amp;P 500</td><td class="r" id="tv-bench">&mdash;</td><td class="r" id="tc-bench">&mdash;</td><td class="r" id="tp-bench">&mdash;</td><td class="r neu">&mdash;</td><td class="r" id="tcov-bench">&mdash;</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-</div></div>
+<div id="pg-all" class="page on"><div class="empty">Loading prices...</div></div>
+<div id="pg-orig" class="page"><div class="empty">Load prices to view</div></div>
+<div id="pg-arjun" class="page"><div class="empty">Load prices to view</div></div>
+<div id="pg-claude" class="page"><div class="empty">Load prices to view</div></div>
+<div id="pg-hfea" class="page"><div class="empty">Load prices to view</div></div>
 
-<div class="pv" id="pv-orig"><div class="main" id="d-orig"><div style="padding:40px;text-align:center;color:var(--muted)">Load prices to view</div></div></div>
-<div class="pv" id="pv-arjun"><div class="main" id="d-arjun"><div style="padding:40px;text-align:center;color:var(--muted)">Load prices to view</div></div></div>
-<div class="pv" id="pv-claude"><div class="main" id="d-claude"><div style="padding:40px;text-align:center;color:var(--muted)">Load prices to view</div></div></div>
-<div class="pv" id="pv-hfea"><div class="main" id="d-hfea"><div style="padding:40px;text-align:center;color:var(--muted)">Load prices to view</div></div></div>
-
-<div class="pv" id="pv-news"><div class="main">
-  <div class="sl">Holdings News &amp; Market Feed</div>
+<div id="pg-news" class="page">
   <div class="ng">
-    <div class="nc"><div class="nch"><div class="nct">Holdings News</div><span class="nb nb-a">AI DIGEST</span></div><div id="hn-list"><div class="ni"><div class="nitx neu">Click Fetch to load.</div></div></div></div>
-    <div class="nc"><div class="nch"><div class="nct">Market Movers</div><span class="nb nb-a">AI DIGEST</span></div><div id="mn-list"><div class="ni"><div class="nitx neu">Macro events.</div></div></div></div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Holdings News</div><span class="ai-badge">AI</span></div>
+      <div id="hn" style="padding:12px 14px;"><div class="mu" style="font-size:12px;">Click Fetch to load.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Market Movers</div><span class="ai-badge">AI</span></div>
+      <div id="mn" style="padding:12px 14px;"><div class="mu" style="font-size:12px;">Click Fetch to load.</div></div>
+    </div>
   </div>
-  <button class="abtn" onclick="fetchNews()" id="newsBtn"><span>&#9673;</span> Fetch AI News Digest</button>
-</div></div>
+  <button class="abtn" onclick="doNews()">&#9673; Fetch AI News Digest</button>
+</div>
 
-<div class="pv" id="pv-review"><div class="main">
-  <div class="rs">
-    <div class="rsh">
-      <div><div class="rst">Daily Portfolio Review</div><div class="rss">AI analysis &middot; trends &middot; rebalancing signals &middot; history tracked</div></div>
-      <button class="rrb" onclick="runReview()" id="revBtn"><span>&#10022;</span> Run Today&#39;s Review</button>
+<div id="pg-rev" class="page">
+  <div class="card">
+    <div class="card-hdr">
+      <div><div class="card-title">Daily Portfolio Review</div><div class="card-sub">AI analysis &middot; trends &middot; signals &middot; history</div></div>
+      <button class="rrb" onclick="doReview()">&#10022; Run Review</button>
     </div>
-    <div class="rb">
-      <div class="re" id="rev-empty"><div class="rei">&#10022;</div><div>Click Run to generate today&#39;s review</div><div style="font-size:10px;color:var(--dim)">Load prices first</div></div>
-      <div class="rc" id="rev-content"><div class="rd" id="rev-date"></div><div id="rev-body"></div></div>
-    </div>
-    <div class="rhi" id="rev-hist"><div style="font-size:10px;color:var(--muted);flex-shrink:0">History:</div></div>
+    <div id="rev-body" style="padding:18px;"><div class="empty">&#10022;<br><br>Click Run Review to generate analysis</div></div>
   </div>
-  <div class="sl">Drift Monitor &mdash; Arjun v2</div>
-  <div class="abar hidden" id="drift-alert"><span>&#9888;</span><span id="drift-txt"></span></div>
-  <div class="hsec">
-    <div class="shdr"><div class="sht">Position Drift vs Targets</div><div style="font-size:10px;color:var(--muted)">&plusmn;25% of target triggers rebalance</div></div>
-    <div class="tw"><table>
-      <thead><tr><th>Ticker</th><th class="r">Target</th><th class="r">Est. Current</th><th class="r">Drift</th><th>Band</th><th class="r">Status</th></tr></thead>
-      <tbody id="drift-tbody"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Load prices first</td></tr></tbody>
-    </table></div>
-  </div>
-</div></div>
+  <div id="drift-wrap"></div>
+</div>
+
 <script>
-
-const AUM = 122066;
-
-const PORTS = {
-orig:   {VOO:0.338,CASH:0.173,QQQ:0.058,IXN:0.040,XLI:0.026,SOXL:0.024,IXC:0.021,EZU:0.014,FAS:0.013,IXJ:0.012,MP:0.012,XLG:0.018,PNQI:0.007,PICK:0.007,EUFN:0.006,EWJ:0.004},
-arjun:  {UPRO:0.18,TQQQ:0.12,VOO:0.14,QQQ:0.08,IGV:0.07,DBMF:0.05,IAU:0.05,DTCR:0.05,SGOV:0.05,IXC:0.04,SOXL:0.04,VGK:0.03,IXJ:0.02,EWJ:0.02,MP:0.01},
-claude: {UPRO:0.30,TQQQ:0.10,VOO:0.15,QQQ:0.08,IGV:0.07,DBMF:0.10,IAU:0.05,SOXL:0.05,SGOV:0.10},
-hfea:   {UPRO:0.55,TMF:0.45}
+var AUM=122066;
+var KEY="8HOALqybUUIvXEvoVYKsC0bJkkdPJ4TJ";
+var PORTS={
+  orig:{VOO:0.338,CASH:0.173,QQQ:0.058,IXN:0.040,XLI:0.026,SOXL:0.024,IXC:0.021,EZU:0.014,FAS:0.013,IXJ:0.012,MP:0.012,XLG:0.018,PNQI:0.007,PICK:0.007,EUFN:0.006,EWJ:0.004},
+  arjun:{UPRO:0.18,TQQQ:0.12,VOO:0.14,QQQ:0.08,IGV:0.07,DBMF:0.05,IAU:0.05,DTCR:0.05,SGOV:0.05,IXC:0.04,SOXL:0.04,VGK:0.03,IXJ:0.02,EWJ:0.02,MP:0.01},
+  claude:{UPRO:0.30,TQQQ:0.10,VOO:0.15,QQQ:0.08,IGV:0.07,DBMF:0.10,IAU:0.05,SOXL:0.05,SGOV:0.10},
+  hfea:{UPRO:0.55,TMF:0.45}
 };
-const PNAMES  = {orig:‘Original’,arjun:‘Arjun v2’,claude:‘Claude Ideal’,hfea:‘HFEA 55/45’};
-const PCOLORS = {orig:’#f5c842’,arjun:’#00e5a0’,claude:’#5b8fff’,hfea:’#ff4466’};
-const DESC = {
-UPRO:‘ProShares S&P 500 3x’,TQQQ:‘ProShares Nasdaq 3x’,VOO:‘Vanguard S&P 500’,
-QQQ:‘Invesco Nasdaq 100’,IGV:‘iShares Software’,DBMF:‘iMGP Managed Futures’,
-IAU:‘iShares Gold Trust’,SOXL:‘Direxion Semis 3x’,SGOV:‘iShares T-Bill 0-3mo’,
-DTCR:‘Global X Data Center’,IXC:‘iShares Global Energy’,VGK:‘Vanguard FTSE Europe’,
-IXJ:‘iShares Global Healthcare’,EWJ:‘iShares MSCI Japan’,MP:‘MP Materials’,
-TMF:‘Direxion 20yr Treasury 3x’,SPY:‘SPDR S&P 500’,IXN:‘iShares Global Tech’,
-XLI:‘SPDR Industrials’,FAS:‘Direxion Financials 3x’,PNQI:‘Invesco Nasdaq Internet’,
-XLG:‘Invesco S&P Top 50’,PICK:‘iShares MSCI Mining’,EUFN:‘iShares MSCI Europe Fin’,
-EZU:‘iShares MSCI Eurozone’,CASH:‘Cash / Sweep’
-};
+var PNAMES={orig:"Original",arjun:"Arjun v2",claude:"Claude Ideal",hfea:"HFEA 55/45"};
+var PCOLS={orig:"#f5c842",arjun:"#00e5a0",claude:"#5b8fff",hfea:"#ff4466"};
+var DESC={UPRO:"ProShares S&P500 3x",TQQQ:"ProShares Nasdaq 3x",VOO:"Vanguard S&P500",QQQ:"Invesco Nasdaq 100",IGV:"iShares Software",DBMF:"iMGP Mgd Futures",IAU:"iShares Gold",SOXL:"Direxion Semis 3x",SGOV:"iShares T-Bill",DTCR:"Global X Data Ctr",IXC:"iShares Energy",VGK:"Vanguard Europe",IXJ:"iShares Healthcare",EWJ:"iShares Japan",MP:"MP Materials",TMF:"Direxion Treasury 3x",SPY:"SPDR S&P500",IXN:"iShares Tech",XLI:"SPDR Industrials",FAS:"Direxion Fin 3x",PNQI:"Nasdaq Internet",XLG:"Invesco S&P Top 50",PICK:"iShares Mining",EUFN:"iShares Europe Fin",EZU:"iShares Eurozone",CASH:"Cash"};
 
-const ALL_T = […new Set(
-Object.values(PORTS).flatMap(function(p){ return Object.keys(p); }).filter(function(t){ return t !== ‘CASH’; })
-), ‘SPY’];
+var ALL_T=(function(){var s={},r=[];Object.values(PORTS).forEach(function(p){Object.keys(p).forEach(function(t){if(t!=="CASH"&&!s[t]){s[t]=1;r.push(t);}});});r.push("SPY");return r;})();
+var prices={};
+var revLog=[];
 
-var prices = {};
-var perfHist = {orig:[],arjun:[],claude:[],hfea:[],bench:[]};
-var perfChart = null;
-var revHistory = [];
-var apiKey = ‘8HOALqybUUIvXEvoVYKsC0bJkkdPJ4TJ’;
+function fd(v){return"$"+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fc(v){return(v>=0?"+":"")+Number(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fp(v){return(v>=0?"+":"")+Number(v).toFixed(2)+"%";}
+function clr(v){return v>=0?"pos":"neg";}
+function ge(id){return document.getElementById(id);}
 
-// ── KEY MANAGEMENT ────────────────────────────────────────────────
-// Use sessionStorage with localStorage fallback; graceful if both blocked
-function storeKey(k) {
-try { localStorage.setItem(‘fmp_key’, k); } catch(e) {}
-try { sessionStorage.setItem(‘fmp_key’, k); } catch(e) {}
-}
-function readKey() {
-try { var k = localStorage.getItem(‘fmp_key’); if (k) return k; } catch(e) {}
-try { var k = sessionStorage.getItem(‘fmp_key’); if (k) return k; } catch(e) {}
-return ‘’;
+function setStatus(cls,msg){var el=ge("sbar");el.className=cls;el.innerHTML=msg;}
+
+function goTab(id,btn){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".nav button").forEach(function(b){b.classList.remove("on");});
+  ge("pg-"+id).classList.add("on");
+  btn.classList.add("on");
 }
 
-function loadKey() {
-var stored = readKey();
-if (stored) {
-apiKey = stored;
-ge(‘keyInput’).value = stored;
-ge(‘keyStatus’).textContent = ‘Key ready’;
-ge(‘keyStatus’).style.color = ‘var(–green)’;
-}
-}
-
-function saveKey() {
-var k = ge(‘keyInput’).value.trim().replace(/\s/g,’’);
-if (!k) { showStatus(‘warn’, ‘Please paste your FMP API key first’); return; }
-if (k.length < 20) { showStatus(‘warn’, ‘Key looks too short — paste the full FMP key’); return; }
-apiKey = k;
-storeKey(k);
-ge(‘keyStatus’).textContent = ‘Key saved ✓’;
-ge(‘keyStatus’).style.color = ‘var(–green)’;
-refreshAll();
+function calcPort(key){
+  var w=PORTS[key],wc=0,cv=0,ms=0;
+  Object.keys(w).forEach(function(t){
+    var wt=w[t];
+    if(t==="CASH"){cv+=wt;}
+    else if(prices[t]&&prices[t].ok){wc+=wt*prices[t].chg;cv+=wt;}
+    else{ms+=wt;}
+  });
+  return{val:AUM+AUM*wc/100,chg:AUM*wc/100,pct:wc,cov:Math.round(cv*100),miss:Math.round(ms*100)};
 }
 
-// ── FMP FETCH ─────────────────────────────────────────────────────
-async function fetchAllFMP() {
-if (!apiKey) {
-showStatus(‘warn’, ‘Paste your FMP API key above and click Load Prices’);
-return false;
+function getBench(){
+  var s=prices["SPY"];
+  if(s&&s.ok)return{val:AUM+AUM*s.chg/100,chg:AUM*s.chg/100,pct:s.chg};
+  return{val:AUM,chg:0,pct:0};
 }
 
-var tickers = ALL_T.join(’,’);
-// FMP documented batch quote endpoint
-var url = ‘https://financialmodelingprep.com/api/v3/quote/’ + tickers + ‘?apikey=’ + apiKey;
-
-showStatus(‘warn’, ‘<span class="spin"></span>  Fetching ’ + ALL_T.length + ’ tickers from FMP…’);
-
-try {
-var resp = await fetch(url);
-var rawText = await resp.text();
-
-```
-// Try to parse
-var data;
-try {
-  data = JSON.parse(rawText);
-} catch(pe) {
-  showStatus('err', 'FMP returned non-JSON response. Raw: ' + rawText.slice(0,120));
-  return false;
+function doLoad(){
+  ge("lupd").textContent="Loading...";
+  setStatus("warn","Fetching prices...");
+  var url="https://financialmodelingprep.com/api/v3/quote/"+ALL_T.join(",")+"?apikey="+KEY;
+  fetch(url)
+    .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+    .then(function(data){
+      if(!Array.isArray(data))throw new Error("Bad data: "+JSON.stringify(data).slice(0,60));
+      var ok=[],fail=[];
+      data.forEach(function(q){
+        if(q.symbol&&typeof q.changesPercentage==="number"&&q.price>0&&Math.abs(q.changesPercentage)<=50){
+          prices[q.symbol]={chg:q.changesPercentage,price:q.price,name:q.name,ok:true};
+          ok.push(q.symbol);
+        }else if(q.symbol){
+          prices[q.symbol]={chg:0,price:0,ok:false};
+          fail.push(q.symbol);
+        }
+      });
+      ALL_T.forEach(function(t){if(!prices[t]){prices[t]={chg:0,price:0,ok:false};fail.push(t);}});
+      prices["CASH"]={chg:0,price:1,ok:true};
+      var now=new Date();
+      ge("lupd").textContent=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+      if(fail.length===0){setStatus("ok","&#10003; All "+ok.length+" tickers loaded");}
+      else{setStatus("warn","Loaded "+ok.length+"/"+ALL_T.length+" &middot; Missing: "+fail.slice(0,5).join(", "));}
+      renderAll();
+    })
+    .catch(function(e){setStatus("err","Error: "+e.message);ge("lupd").textContent="Failed";});
 }
 
-// FMP error formats
-if (!Array.isArray(data)) {
-  if (data && data['Error Message']) {
-    showStatus('err', 'FMP Error: ' + data['Error Message']);
-  } else if (data && data.message) {
-    showStatus('err', 'FMP: ' + data.message);
-  } else {
-    showStatus('err', 'Unexpected response: ' + JSON.stringify(data).slice(0,150));
-  }
-  return false;
+function renderAll(){
+  var B=getBench();
+  var pv={};
+  ["orig","arjun","claude","hfea"].forEach(function(k){pv[k]=calcPort(k);});
+
+  // Overview cards
+  var cards=["orig","arjun","claude","hfea"].map(function(k){
+    var p=pv[k],a=p.pct-B.pct,c=PCOLS[k];
+    var lbl=k==="orig"?"Original":k==="arjun"?"Recommended &#9733;":k==="claude"?"Max Upside":"Community";
+    return '<div class="pcard" style="border-top:3px solid '+c+'"><div class="pcard-lbl">'+lbl+'</div>'
+      +'<div class="pcard-name" style="color:'+c+'">'+PNAMES[k]+'</div>'
+      +'<div class="pcard-val '+clr(p.chg)+'">'+fd(p.val)+'</div>'
+      +'<div class="pcard-chg '+clr(p.chg)+'">'+fc(p.chg)+' today</div>'
+      +'<div class="pcard-meta '+clr(a)+'">vs S&amp;P: '+fp(a)+'</div>'
+      +'<div class="pcard-meta mu">'+p.cov+'% coverage</div></div>';
+  }).join("");
+
+  // Summary rows
+  var srows=["orig","arjun","claude","hfea"].map(function(k){
+    var p=pv[k],a=p.pct-B.pct;
+    return '<tr style="'+(k==="arjun"?"background:rgba(0,229,160,.03)":"")+'"><td style="color:'+PCOLS[k]+'">'+PNAMES[k]+(k==="arjun"?" &#9733;":"")+'</td>'
+      +'<td class="'+clr(p.chg)+'">'+fd(p.val)+'</td><td class="'+clr(p.chg)+'">'+fc(p.chg)+'</td>'
+      +'<td class="'+clr(p.pct)+'">'+fp(p.pct)+'</td><td class="'+clr(a)+'">'+fp(a)+'</td>'
+      +'<td style="color:'+(p.cov>=90?"#00e5a0":p.cov>=70?"#f5c842":"#ff4466")+'">'+p.cov+'%</td></tr>';
+  }).join("")
+  +'<tr style="background:#151720"><td style="color:#8899bb">S&amp;P 500</td>'
+  +'<td class="'+clr(B.chg)+'">'+fd(B.val)+'</td><td class="'+clr(B.chg)+'">'+fc(B.chg)+'</td>'
+  +'<td class="'+clr(B.pct)+'">'+fp(B.pct)+'</td><td class="mu">&mdash;</td>'
+  +'<td class="'+(prices["SPY"]&&prices["SPY"].ok?"pos":"neg")+'">'+(prices["SPY"]&&prices["SPY"].ok?100:0)+'%</td></tr>';
+
+  ge("pg-all").innerHTML='<div class="grid2">'+cards+'</div>'
+    +'<div class="card"><div class="card-hdr"><div class="card-title">Summary</div>'
+    +'<div class="card-sub">Today change vs $122,066</div></div>'
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Portfolio</th><th>Value</th>'
+    +'<th>$ Change</th><th>% Today</th><th>vs S&amp;P</th><th>Cov</th></tr></thead>'
+    +'<tbody>'+srows+'</tbody></table></div></div>';
+
+  // Individual pages
+  ["orig","arjun","claude","hfea"].forEach(function(k){
+    var p=pv[k],a=p.pct-B.pct,c=PCOLS[k];
+    var hrows=Object.keys(PORTS[k]).sort(function(a,b){return PORTS[k][b]-PORTS[k][a];}).map(function(t){
+      var wt=PORTS[k][t],pr=prices[t];
+      var chg=pr&&pr.ok?pr.chg:null;
+      var curW=chg!==null?(wt*(1+chg/100))/(1+p.pct/100):wt;
+      var drift=((curW-wt)/wt)*100,ad=Math.abs(drift);
+      var dc=ad>25?"#ff4466":ad>15?"#f5c842":"#00e5a0";
+      var ds=chg===null?"N/A":ad>25?"&#9888; REBAL":ad>15?"~Watch":"&#10003; OK";
+      return '<tr><td style="color:'+c+';font-family:monospace;font-weight:600">'+t+'</td>'
+        +'<td style="color:#5c6080;font-size:11px">'+(pr&&pr.name?pr.name:(DESC[t]||""))+'</td>'
+        +'<td>'+(pr&&pr.price?fd(pr.price):"&mdash;")+'</td>'
+        +'<td class="'+(chg!==null?clr(chg):"mu")+'">'+(chg!==null?fp(chg):"N/A")+'</td>'
+        +'<td>'+(wt*100).toFixed(1)+'%</td><td>'+fd(AUM*wt)+'</td>'
+        +'<td style="color:'+dc+';font-size:11px">'+ds+'</td></tr>';
+    }).join("");
+    ge("pg-"+k).innerHTML='<div class="mini3">'
+      +'<div class="mini"><div class="mini-l">Value</div><div class="mini-v '+clr(p.chg)+'">'+fd(p.val)+'</div></div>'
+      +'<div class="mini"><div class="mini-l">Today</div><div class="mini-v '+clr(p.chg)+'">'+fp(p.pct)+'</div></div>'
+      +'<div class="mini"><div class="mini-l">vs S&amp;P</div><div class="mini-v '+clr(a)+'">'+fp(a)+'</div></div>'
+      +'</div><div class="card"><div class="card-hdr"><div class="card-title">'+PNAMES[k]+' Holdings</div>'
+      +'<div class="card-sub">Live prices via FMP</div></div><div class="tbl-wrap">'
+      +'<table class="tbl"><thead><tr><th>Ticker</th><th>Name</th><th>Price</th>'
+      +'<th>% Today</th><th>Target</th><th>Alloc</th><th>Drift</th></tr></thead>'
+      +'<tbody>'+hrows+'</tbody></table></div></div>';
+  });
+
+  // Drift in review page
+  var drows=Object.keys(PORTS.arjun).sort(function(a,b){return PORTS.arjun[b]-PORTS.arjun[a];}).map(function(t){
+    var tgt=PORTS.arjun[t],pr=prices[t];
+    var chg=pr&&pr.ok?pr.chg:null;
+    var curW=chg!==null?(tgt*(1+chg/100))/(1+(pv.arjun.pct||0)/100):tgt;
+    var drift=((curW-tgt)/tgt)*100,ad=Math.abs(drift);
+    var bc=ad>25?"#ff4466":ad>15?"#f5c842":"#00e5a0";
+    var ds=chg===null?"N/A":ad>25?"&#9888; REBALANCE":ad>15?"~ Watch":"&#10003; In Band";
+    var bw=Math.min(100,50+drift/2);
+    return '<tr><td style="color:#00e5a0;font-family:monospace;font-weight:600">'+t+'</td>'
+      +'<td>'+(tgt*100).toFixed(1)+'%</td><td>'+(curW*100).toFixed(1)+'%</td>'
+      +'<td style="color:'+bc+'">'+(drift>=0?"+":"")+drift.toFixed(1)+'%</td>'
+      +'<td><div class="dbw"><div class="dbf" style="width:'+bw+'%;background:'+bc+'"></div></div></td>'
+      +'<td style="color:'+bc+';font-size:11px">'+ds+'</td></tr>';
+  }).join("");
+  ge("drift-wrap").innerHTML='<div class="card" style="margin-top:14px">'
+    +'<div class="card-hdr"><div class="card-title">Drift Monitor &mdash; Arjun v2</div>'
+    +'<div class="card-sub">&plusmn;25% triggers rebalance</div></div>'
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ticker</th><th>Target</th>'
+    +'<th>Est. Now</th><th>Drift</th><th>Band</th><th>Status</th></tr></thead>'
+    +'<tbody>'+drows+'</tbody></table></div></div>';
 }
 
-if (data.length === 0) {
-  showStatus('err', 'FMP returned empty array. Key may be invalid or tickers not found.');
-  return false;
-}
-
-// Build price map
-var quoteMap = {};
-data.forEach(function(q) { if (q && q.symbol) quoteMap[q.symbol] = q; });
-
-var fetched = [], failed = [];
-ALL_T.forEach(function(t) {
-  var q = quoteMap[t];
-  if (q && typeof q.changesPercentage === 'number' && typeof q.price === 'number' && q.price > 0) {
-    if (Math.abs(q.changesPercentage) > 50) {
-      failed.push(t);
-      prices[t] = {changePct:null, price:null, fetched:false};
-      return;
+function doNews(){
+  ge("hn").innerHTML='<div class="mu" style="font-size:12px">Fetching...</div>';
+  var lines=Object.keys(PORTS.arjun).filter(function(t){return t!=="CASH";}).map(function(t){
+    var p=prices[t];return p&&p.ok?t+":"+fp(p.chg):null;
+  }).filter(Boolean).join(", ");
+  var prompt="Based on these ETF moves today: "+lines+". Generate a brief news digest. Reply with ONLY valid JSON: {\"holdings\":[{\"ticker\":\"UPRO\",\"headline\":\"brief headline\",\"impact\":\"bullish\"}],\"macro\":[{\"ticker\":\"MACRO\",\"headline\":\"brief headline\",\"impact\":\"neutral\"}]}";
+  callClaude(prompt,600,function(rev){
+    function ri(arr){
+      if(!arr||!arr.length)return'<div class="mu" style="font-size:12px">No news</div>';
+      return arr.map(function(n){
+        var c=n.impact==="bullish"?"#00e5a0":n.impact==="bearish"?"#ff4466":"#5c6080";
+        return'<div class="ni"><div class="nitk">'+(n.ticker||"")+'</div>'
+          +'<div><div class="nitx">'+(n.headline||"")+'</div>'
+          +'<div style="font-size:9px;color:'+c+';margin-top:2px">'+(n.impact||"")+'</div></div></div>';
+      }).join("");
     }
-    prices[t] = {
-      changePct: q.changesPercentage,
-      price: q.price,
-      prevClose: q.previousClose,
-      volume: q.volume,
-      name: q.name || DESC[t] || t,
-      fetched: true
-    };
-    fetched.push(t);
-  } else {
-    prices[t] = {changePct:null, price:null, fetched:false};
-    failed.push(t);
-  }
-});
-
-prices['CASH'] = {changePct:0, price:1, prevClose:1, fetched:true};
-
-var now = new Date();
-ge('lupd').textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-if (failed.length === 0) {
-  ge('sdot').className = 'sdot live';
-  showStatus('ok', '&#10003; All ' + fetched.length + ' tickers loaded &middot; ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
-} else {
-  ge('sdot').className = 'sdot partial';
-  showStatus('warn', 'Loaded ' + fetched.length + '/' + ALL_T.length + '. Not found: ' + failed.join(', '));
-}
-return true;
-```
-
-} catch(e) {
-showStatus(‘err’, ‘Network error: ’ + e.message + ’ — Check internet connection. If on mobile, try opening in Safari/Chrome.’);
-ge(‘sdot’).className = ‘sdot’;
-return false;
-}
+    ge("hn").innerHTML=ri(rev.holdings);
+    ge("mn").innerHTML=ri(rev.macro);
+  },function(e){ge("hn").innerHTML='<div style="color:#ff4466;font-size:12px">Error: '+e+'</div>';});
 }
 
-function showStatus(type, msg) {
-var bar = ge(‘statusbar’);
-bar.className = ’statusbar ’ + type;
-bar.innerHTML = msg;
+function doReview(){
+  ge("rev-body").innerHTML='<div class="empty">Analyzing...</div>';
+  var B=getBench();
+  var pv={};["orig","arjun","claude","hfea"].forEach(function(k){pv[k]=calcPort(k);});
+  var pl=Object.keys(PORTS).map(function(k){var p=pv[k];return PNAMES[k]+": "+fp(p.pct)+" cov:"+p.cov+"%";}).join(", ");
+  var hl=Object.keys(PORTS.arjun).filter(function(t){return t!=="CASH";}).map(function(t){var p=prices[t];return p&&p.ok?t+":"+fp(p.chg):t+":N/A";}).join(", ");
+  var hist=revLog.length>0?"Previous: "+revLog.slice(-2).map(function(r){return r.d+":"+r.s;}).join(", "):"";
+  var prompt="Daily review for leveraged ETF portfolio. Age 35, aggressive growth. Arjun v2 ACTIVE (34% leveraged). AUM $122k. Portfolios: "+pl+". Holdings: "+hl+". "+hist+" Reply with ONLY valid JSON: {\"summary\":\"one sentence\",\"insights\":[{\"tag\":\"bull\",\"title\":\"title\",\"text\":\"2-3 sentences\"}],\"drift_check\":\"one sentence\",\"forward_look\":\"one sentence\"}";
+  callClaude(prompt,700,function(rev){
+    var today=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});
+    revLog.push({d:today,s:rev.summary||""});
+    var tm={bull:"t-bull",bear:"t-bear",neutral:"t-neutral",action:"t-action",watch:"t-watch"};
+    var html='<div style="font-size:10px;color:#5c6080;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #1c1f2e">'
+      +today+" &middot; "+new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})+"</div>";
+    (rev.insights||[]).forEach(function(ins){
+      html+='<div class="iblock"><div class="itag '+(tm[ins.tag]||"t-neutral")+'">'+(ins.tag||"note")+'</div>'
+        +'<div class="itext"><strong>'+(ins.title||"")+'</strong><br>'+(ins.text||"")+'</div></div>';
+    });
+    if(rev.drift_check)html+='<div class="iblock"><div class="itag t-watch">drift</div><div class="itext">'+rev.drift_check+'</div></div>';
+    if(rev.forward_look)html+='<div class="iblock"><div class="itag t-neutral">tomorrow</div><div class="itext">'+rev.forward_look+'</div></div>';
+    ge("rev-body").innerHTML=html;
+  },function(e){ge("rev-body").innerHTML='<div style="color:#ff4466;padding:20px">Error: '+e+'</div>';});
 }
 
-// ── PORTFOLIO CALCS ───────────────────────────────────────────────
-function calcPort(key) {
-var w = PORTS[key], weightedChg = 0, coveredWt = 0, missingWt = 0;
-Object.entries(w).forEach(function(e) {
-var t = e[0], wt = e[1];
-if (t === ‘CASH’) { coveredWt += wt; }
-else if (prices[t] && prices[t].fetched && prices[t].changePct !== null) {
-weightedChg += wt * prices[t].changePct;
-coveredWt += wt;
-} else { missingWt += wt; }
-});
-return {
-value: AUM + AUM * weightedChg / 100,
-change: AUM * weightedChg / 100,
-changePct: weightedChg,
-coverage: Math.round(coveredWt * 100),
-missingWt: Math.round(missingWt * 100)
-};
-}
-
-function calcBench() {
-var p = prices[‘SPY’];
-if (!p || !p.fetched) return {value:AUM,change:0,changePct:0,coverage:0};
-return {value:AUM+AUM*p.changePct/100,change:AUM*p.changePct/100,changePct:p.changePct,coverage:100};
-}
-
-function fd(v){ return ‘$’+v.toLocaleString(‘en-US’,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fc(v){ return (v>=0?’+’:’’)+v.toLocaleString(‘en-US’,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fp(v){ return (v>=0?’+’:’’)+v.toFixed(2)+’%’; }
-function cls(v){ return v>=0?‘pos’:‘neg’; }
-function ge(id){ return document.getElementById(id); }
-
-// ── UPDATE ALL ────────────────────────────────────────────────────
-function updateAll() {
-var bench = calcBench();
-[‘orig’,‘arjun’,‘claude’,‘hfea’].forEach(function(k) {
-var p = calcPort(k), alpha = p.changePct - bench.changePct;
-var covCls = p.coverage >= 90 ? ‘pos’ : p.coverage >= 70 ? ‘warn’ : ‘neg’;
-var vEl = ge(‘v-’+k);
-if (vEl) {
-vEl.textContent = fd(p.value); vEl.className = ‘pc-v ‘+cls(p.change);
-ge(‘c-’+k).textContent = fc(p.change)+’ today’; ge(‘c-’+k).className = ‘pc-c ‘+cls(p.change);
-ge(‘a-’+k).textContent = ‘vs S&P: ‘+fp(alpha); ge(‘a-’+k).className = ‘pc-a ‘+cls(alpha);
-ge(‘cov-’+k).textContent = p.coverage+’% coverage’+(p.missingWt>0?’ (’+p.missingWt+’% N/A)’:’’);
-ge(‘cov-’+k).className = ’pc-cov ’+covCls;
-}
-var tvEl = ge(‘tv-’+k);
-if (tvEl) {
-tvEl.textContent = fd(p.value); tvEl.className = ’r ’+cls(p.change);
-ge(‘tc-’+k).textContent = fc(p.change); ge(‘tc-’+k).className = ’r ’+cls(p.change);
-ge(‘tp-’+k).textContent = fp(p.changePct); ge(‘tp-’+k).className = ’r ’+cls(p.change);
-ge(‘ta-’+k).textContent = fp(alpha); ge(‘ta-’+k).className = ‘r ‘+cls(alpha);
-ge(‘tcov-’+k).textContent = p.coverage+’%’; ge(‘tcov-’+k).className = ’r ’+covCls;
-}
-});
-var tb = ge(‘tv-bench’);
-if (tb) {
-tb.textContent = fd(bench.value); tb.className = ’r ’+cls(bench.change);
-ge(‘tc-bench’).textContent = fc(bench.change); ge(‘tc-bench’).className = ’r ’+cls(bench.change);
-ge(‘tp-bench’).textContent = fp(bench.changePct); ge(‘tp-bench’).className = ‘r ‘+cls(bench.change);
-ge(‘tcov-bench’).textContent = bench.coverage+’%’; ge(‘tcov-bench’).className = ’r ’+(bench.coverage>0?‘pos’:‘neg’);
-}
-[‘orig’,‘arjun’,‘claude’,‘hfea’].forEach(function(k){ renderDetail(k); });
-updateDrift();
-}
-
-function renderDetail(key) {
-var cont = ge(‘d-’+key); if (!cont) return;
-var w = PORTS[key], p = calcPort(key), b = calcBench(), col = PCOLORS[key];
-var alpha = p.changePct - b.changePct;
-var rows = Object.entries(w).sort(function(a,b2){ return b2[1]-a[1]; }).map(function(e) {
-var t = e[0], wt = e[1];
-var pr = prices[t];
-var chgPct = (pr && pr.fetched && pr.changePct !== null) ? pr.changePct : null;
-var prStr  = (pr && pr.price) ? fd(pr.price) : ‘—’;
-var chgStr = chgPct !== null ? ((chgPct>=0?’+’:’’)+chgPct.toFixed(2)+’%’) : ‘<span class="warn">N/A</span>’;
-var chgCls = chgPct !== null ? cls(chgPct) : ‘warn’;
-var curW   = chgPct !== null ? (wt*(1+chgPct/100))/(1+p.changePct/100) : wt;
-var drift  = ((curW-wt)/wt)*100, ad = Math.abs(drift);
-var dc = ad>25?‘neg’:ad>15?‘warn’:cls(1);
-var ds = chgPct===null ? ‘<span class="warn">No data</span>’ : (ad>25?’⚠ REBALANCE’:ad>15?’~ Watch’:’✓ OK’);
-return ‘<tr>’
-+’<td class="tk" style="color:'+col+'">’+t+’</td>’
-+’<td style="color:var(--muted);font-size:10px">’+(pr&&pr.name?pr.name:(DESC[t]||’’))+’</td>’
-+’<td class="r">’+prStr+’</td>’
-+’<td class="r '+chgCls+'">’+chgStr+’</td>’
-+’<td class="r">’+(wt*100).toFixed(1)+’%</td>’
-+’<td class="r">’+fd(AUM*wt)+’</td>’
-+’<td class="r '+dc+'" style="font-size:10px">’+ds+’</td></tr>’;
-}).join(’’);
-var levMap = {orig:‘~4%’,arjun:‘34%’,claude:‘45%’,hfea:‘55%’};
-cont.innerHTML =
-‘<div class="as">’
-+’<div class="ac"><div class="al">Value</div><div class="av '+cls(p.change)+'">’+fd(p.value)+’</div><div class="ab">Base $122,066</div></div>’
-+’<div class="ac"><div class="al">Today</div><div class="av '+cls(p.change)+'">’+fc(p.change)+’</div><div class="ab">’+fp(p.changePct)+’</div></div>’
-+’<div class="ac"><div class="al">Alpha</div><div class="av '+cls(alpha)+'">’+fp(alpha)+’</div><div class="ab">vs S&P 500</div></div>’
-+’<div class="ac"><div class="al">Coverage</div><div class="av '+(p.coverage>=90?'pos':'warn')+'">’+p.coverage+’%</div><div class="ab">tickers loaded</div></div>’
-+’<div class="ac"><div class="al">Leveraged</div><div class="av neg">’+levMap[key]+’</div><div class="ab">of portfolio</div></div>’
-+’</div>’
-+’<div class="csec"><div class="chdr"><div class="ct">’+PNAMES[key]+’ — Holdings Today</div></div>’
-+’<div class="cw200"><canvas id="hc-'+key+'"></canvas></div></div>’
-+’<div class="hsec"><div class="shdr"><div class="sht">Holdings Detail</div>’
-+’<div style="font-size:10px;color:var(--muted)">FMP live prices · N/A = ticker unavailable</div></div>’
-+’<div class="tw"><table><thead><tr>’
-+’<th>Ticker</th><th>Name</th><th class="r">Price</th><th class="r">% Today</th>’
-+’<th class="r">Target</th><th class="r">Allocation</th><th class="r">Drift</th>’
-+’</tr></thead><tbody>’+rows+’</tbody></table></div></div>’;
-setTimeout(function() {
-var cv = ge(‘hc-’+key); if (!cv) return;
-if (cv._ch) cv._ch.destroy();
-var tks = Object.keys(w).sort(function(a,b){ return w[b]-w[a]; });
-var chgs = tks.map(function(t){ var pr=prices[t]; return (pr&&pr.fetched&&pr.changePct!==null)?+pr.changePct.toFixed(2):0; });
-cv._ch = new Chart(cv.getContext(‘2d’),{type:‘bar’,
-data:{labels:tks,datasets:[{label:’% Today’,data:chgs,
-backgroundColor:chgs.map(function(v){return v>=0?‘rgba(0,229,160,.7)’:‘rgba(255,68,102,.7)’;}),borderRadius:3}]},
-options:{responsive:true,maintainAspectRatio:false,
-plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ’ ‘+c.raw+’%’;}}}},
-scales:{x:{ticks:{color:’#5c6080’,font:{size:10,family:‘Syne Mono’}},grid:{color:’#1c1f2e’}},
-y:{ticks:{color:’#5c6080’,font:{size:10,family:‘Syne Mono’},callback:function(v){return v+’%’;}},grid:{color:’#1c1f2e’}}}}});
-},100);
-}
-
-function updatePerfHist() {
-var bench = calcBench();
-[‘orig’,‘arjun’,‘claude’,‘hfea’].forEach(function(k){ perfHist[k].push(calcPort(k).value); });
-perfHist.bench.push(bench.value);
-var n = perfHist.bench.length;
-var labels = [];
-for (var i=0;i<n;i++){var d=new Date();d.setMinutes(d.getMinutes()-(n-1-i)*5);labels.push(d.toLocaleTimeString(‘en-US’,{hour:‘2-digit’,minute:‘2-digit’}));}
-var cv = ge(‘perfChart’); if (!cv) return;
-if (perfChart) {
-perfChart.data.labels = labels;
-[‘orig’,‘arjun’,‘claude’,‘hfea’,‘bench’].forEach(function(k,i){ perfChart.data.datasets[i].data=perfHist[k]; });
-perfChart.update(‘none’); return;
-}
-var DS=[{k:‘orig’,c:’#f5c842’,d:[]},{k:‘arjun’,c:’#00e5a0’,d:[]},{k:‘claude’,c:’#5b8fff’,d:[5,3]},{k:‘hfea’,c:’#ff4466’,d:[5,3]},{k:‘bench’,c:’#8899bb’,d:[3,5]}];
-perfChart = new Chart(cv.getContext(‘2d’),{type:‘line’,
-data:{labels:labels,datasets:DS.map(function(s){return {label:PNAMES[s.k]||‘S&P’,data:perfHist[s.k],borderColor:s.c,backgroundColor:s.k===‘arjun’?‘rgba(0,229,160,.07)’:‘transparent’,fill:s.k===‘arjun’,borderWidth:s.k===‘arjun’?2.5:1.5,borderDash:s.d,pointRadius:0,tension:.4};})},
-options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},
-plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+’: ‘+fd(c.raw)+’ (’+fp((c.raw-AUM)/AUM*100)+’)’;}}}},
-scales:{x:{ticks:{color:’#5c6080’,font:{size:9,family:‘Syne Mono’},maxTicksLimit:8},grid:{color:’#1c1f2e’}},
-y:{ticks:{color:’#5c6080’,font:{size:9,family:‘Syne Mono’},callback:function(v){return ‘$’+Math.round(v/1000)+‘K’;}},grid:{color:’#1c1f2e’}}}}});
-}
-
-function updateDrift() {
-var p = calcPort(‘arjun’), w = PORTS.arjun, alerts = [];
-var rows = Object.entries(w).sort(function(a,b){ return b[1]-a[1]; }).map(function(e) {
-var t=e[0],tgt=e[1];
-var pr=prices[t], chgPct=(pr&&pr.fetched&&pr.changePct!==null)?pr.changePct:null;
-var curW = chgPct!==null?(tgt*(1+chgPct/100))/(1+p.changePct/100):tgt;
-var drift=((curW-tgt)/tgt)*100, ad=Math.abs(drift);
-var dc=ad>25?‘neg’:ad>15?‘warn’:cls(1);
-var ds=chgPct===null?’<span class="warn">N/A</span>’:(ad>25?’⚠ REBALANCE’:ad>15?’~ Watch’:’✓ In Band’);
-if(ad>25&&chgPct!==null) alerts.push(t);
-var bw=Math.min(100,50+drift/2), bc=ad>25?‘var(–red)’:ad>15?‘var(–amber)’:‘var(–green)’;
-return ‘<tr><td class="tk" style="color:var(--arjun)">’+t+’</td>’
-+’<td class="r">’+(tgt*100).toFixed(1)+’%</td>’
-+’<td class="r">’+(curW*100).toFixed(1)+’%</td>’
-+’<td class="r '+dc+'">’+(drift>=0?’+’:’’)+drift.toFixed(1)+’%</td>’
-+’<td><div class="dbw"><div class="dbf" style="width:'+bw+'%;background:'+bc+'"></div></div></td>’
-+’<td class="r '+dc+'" style="font-size:10px">’+ds+’</td></tr>’;
-}).join(’’);
-var tb=ge(‘drift-tbody’); if(tb) tb.innerHTML=rows;
-var ab=ge(‘drift-alert’);
-if(alerts.length>0){ab.classList.remove(‘hidden’);ge(‘drift-txt’).textContent=‘Drift alert: ‘+alerts.join(’, ‘)+’ outside 25% band’;}
-else ab.classList.add(‘hidden’);
-}
-
-async function fetchNews() {
-var btn=ge(‘newsBtn’); btn.innerHTML=’<span class="spin"></span> Fetching…’; btn.disabled=true;
-var lines=Object.keys(PORTS.arjun).filter(function(t){return t!==‘CASH’;}).map(function(t){
-var p=prices[t]; return (p&&p.fetched&&p.changePct!==null)?(t+’: $’+p.price.toFixed(2)+’ (’+fp(p.changePct)+’)’):null;
-}).filter(Boolean).join(’\n’);
-try {
-var r=await fetch(‘https://api.anthropic.com/v1/messages’,{method:‘POST’,headers:{‘Content-Type’:‘application/json’},
-body:JSON.stringify({model:‘claude-sonnet-4-20250514’,max_tokens:1000,messages:[{role:‘user’,content:
-‘Financial news analyst. Based on today's price movements, generate a concise news digest.\nReturn ONLY JSON (no markdown):\n’
-+’{“holdings_news”:[{“ticker”:“X”,“headline”:“under 12 words”,“impact”:“bullish|bearish|neutral”,“time”:“HH:MM AM/PM”}],’
-+’“market_news”:[{“ticker”:“MACRO”,“headline”:“market headline”,“impact”:“bullish|bearish|neutral”,“time”:“HH:MM AM/PM”}]}\n\nPrices:\n’+lines}]})});
-var j=await r.json();
-var txt=((j.content&&j.content[0]&&j.content[0].text)||’{}’).replace(/`json|`/g,’’).trim();
-var parsed=JSON.parse(txt);
-function ri(arr){
-if(!arr||!arr.length) return ‘<div class="ni"><div class="nitx neu">No significant news</div></div>’;
-return arr.map(function(n){
-var ic=n.impact===‘bullish’?‘pos’:n.impact===‘bearish’?‘neg’:‘neu’;
-return ‘<div class="ni"><div class="nitk">’+n.ticker+’</div><div><div class="nitx">’+n.headline+’</div>’
-+’<div class="niti">’+(n.time||‘Today’)+’ · <span class="'+ic+'">’+n.impact+’</span></div></div></div>’;
-}).join(’’);
-}
-ge(‘hn-list’).innerHTML=ri(parsed.holdings_news);
-ge(‘mn-list’).innerHTML=ri(parsed.market_news);
-} catch(e){ge(‘hn-list’).innerHTML=’<div class="ni"><div class="nitx neg">Error: ‘+e.message+’</div></div>’;}
-btn.innerHTML=’<span>◉</span> Refresh News’; btn.disabled=false;
-}
-
-async function runReview() {
-if(!Object.keys(prices).length){alert(‘Load prices first’);return;}
-var btn=ge(‘revBtn’); btn.innerHTML=’<span class="spin"></span> Analyzing…’;
-var portLines=Object.entries(PORTS).map(function(e){var p=calcPort(e[0]);return PNAMES[e[0]]+’: ‘+fp(p.changePct)+’ (’+fd(p.value)+’) cov:’+p.coverage+’%’;}).join(’\n’);
-var priceLines=Object.keys(PORTS.arjun).filter(function(t){return t!==‘CASH’;}).map(function(t){
-var p=prices[t]; return (p&&p.fetched&&p.changePct!==null)?(t+’: $’+p.price.toFixed(2)+’ (’+fp(p.changePct)+’)’):(t+’: no data’);
-}).join(’\n’);
-var histCtx=revHistory.length>0?(’\n\nPast reviews:\n’+revHistory.slice(-3).map(function(r){return r.date+’: ‘+r.summary;}).join(’\n’)):’’;
-try {
-var r=await fetch(‘https://api.anthropic.com/v1/messages’,{method:‘POST’,headers:{‘Content-Type’:‘application/json’},
-body:JSON.stringify({model:‘claude-sonnet-4-20250514’,max_tokens:1000,messages:[{role:‘user’,content:
-‘Analyze this leveraged ETF 401k portfolio. Give a concise daily review.\n\n’
-+‘CONTEXT: Age 35, aggressive growth, long horizon. Arjun v2 is ACTIVE: 34% leveraged, 22% foundation, 12% hedge. AUM $122,066.\n\n’
-+‘PORTFOLIOS:\n’+portLines+’\n\nHOLDINGS:\n’+priceLines+histCtx+’\n\n’
-+‘Return ONLY JSON:\n{“summary”:“1 sentence”,“overall_tone”:“bullish|bearish|neutral|mixed”,’
-+’“insights”:[{“tag”:“bull|bear|neutral|action|watch”,“title”:“short”,“text”:“2-3 sentences”}],’
-+’“drift_check”:“brief”,“forward_look”:“1 sentence”,“consider_change”:false}’}]})});
-var j=await r.json();
-var txt=((j.content&&j.content[0]&&j.content[0].text)||’{}’).replace(/`json|`/g,’’).trim();
-var rev=JSON.parse(txt);
-var today=new Date().toLocaleDateString(‘en-US’,{month:‘short’,day:‘numeric’,year:‘numeric’});
-revHistory.push({date:today,summary:rev.summary||‘Review’,full:rev});
-var ih=(rev.insights||[]).map(function(ins){
-return ‘<div class="ib"><span class="itag tag-'+(ins.tag||'neutral')+'">’+ins.tag+’</span>’
-+’<div class="itext"><strong>’+ins.title+’</strong><br>’+ins.text+’</div></div>’;
-}).join(’’);
-ge(‘rev-body’).innerHTML=ih
-+’<div class="ib"><span class="itag tag-watch">Drift</span><div class="itext">’+(rev.drift_check||‘No significant drift.’)+’</div></div>’
-+’<div class="ib"><span class="itag tag-neutral">Tomorrow</span><div class="itext">’+(rev.forward_look||‘Continue monitoring.’)+’</div></div>’
-+(rev.consider_change?’<div class="ib"><span class="itag tag-action">Consider Change</span><div class="itext">Review allocation based on recent trends.</div></div>’:’’);
-ge(‘rev-date’).textContent=‘Review: ‘+today+’ at ‘+new Date().toLocaleTimeString();
-ge(‘rev-empty’).style.display=‘none’; ge(‘rev-content’).classList.add(‘on’);
-updateRevHist();
-} catch(e){
-ge(‘rev-body’).innerHTML=’<div class="itext neg">Error: ‘+e.message+’</div>’;
-ge(‘rev-empty’).style.display=‘none’; ge(‘rev-content’).classList.add(‘on’);
-}
-btn.innerHTML=’<span>✦</span> Run Today's Review’;
-}
-
-function updateRevHist(){
-var c=ge(‘rev-hist’);
-c.innerHTML=’<div style="font-size:10px;color:var(--muted);flex-shrink:0">History:</div>’
-+revHistory.slice().reverse().map(function(r,i){
-return ‘<div class="hp '+(i===0?'on':'')+'" onclick="showRev('+(revHistory.length-1-i)+')">’+r.date+’</div>’;
-}).join(’’);
-}
-
-function showRev(idx){
-var r=revHistory[idx]; if(!r||!r.full) return;
-ge(‘rev-date’).textContent=‘Review from: ‘+r.date;
-var ih=(r.full.insights||[]).map(function(ins){
-return ‘<div class="ib"><span class="itag tag-'+(ins.tag||'neutral')+'">’+ins.tag+’</span>’
-+’<div class="itext"><strong>’+ins.title+’</strong><br>’+ins.text+’</div></div>’;
-}).join(’’);
-ge(‘rev-body’).innerHTML=ih+’<div class="ib"><span class="itag tag-neutral">Tomorrow</span><div class="itext">’+(r.full.forward_look||’’)+’</div></div>’;
-ge(‘rev-empty’).style.display=‘none’; ge(‘rev-content’).classList.add(‘on’);
-}
-
-function sw(key,btn){
-document.querySelectorAll(’.pv’).forEach(function(v){v.classList.remove(‘active’);});
-document.querySelectorAll(’.nt’).forEach(function(b){b.classList.remove(‘active’);});
-ge(‘pv-’+key).classList.add(‘active’); btn.classList.add(‘active’);
-}
-
-async function refreshAll(){
-if(!apiKey){showStatus(‘warn’,‘Paste your FMP API key above and click Load Prices’);return;}
-var ri=ge(‘ri’); ri.innerHTML=’<span class="spin"></span>’;
-ge(‘sdot’).className=‘sdot’;
-var ok=await fetchAllFMP();
-ri.innerHTML=’↻’;
-if(ok){updateAll();updatePerfHist();if(isMarket())setTimeout(refreshAll,5*60*1000);}
+function callClaude(prompt,tokens,onOk,onErr){
+  fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-haiku-4-5-20251001",
+      max_tokens:tokens,
+      messages:[{role:"user",content:prompt}]
+    })
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    var txt=((d.content||[]).find(function(b){return b.type==="text";})||{}).text||"{}";
+    txt=txt.replace(/```json|```/g,"").trim();
+    var s=txt.indexOf("{"),e=txt.lastIndexOf("}");
+    if(s===-1||e===-1)throw new Error("No JSON in response");
+    onOk(JSON.parse(txt.slice(s,e+1)));
+  }).catch(function(e){onErr(e.message);});
 }
 
 function isMarket(){var h=new Date().getHours(),m=new Date().getMinutes();return(h>9||(h===9&&m>=30))&&h<16;}
-
-// Init - key hardcoded, auto-load
-apiKey = “8HOALqybUUIvXEvoVYKsC0bJkkdPJ4TJ”;
-refreshAll();
-
+window.addEventListener("load",function(){
+  doLoad();
+  setInterval(function(){if(isMarket())doLoad();},5*60*1000);
+});
 </script>
+
 </body>
 </html>
