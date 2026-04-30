@@ -37,7 +37,7 @@ h1{font-size:15px;font-weight:700;}
 .card-hdr{padding:12px 14px;border-bottom:1px solid #1c1f2e;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
 .card-title{font-size:13px;font-weight:600;}
 .card-sub{font-size:10px;color:#5c6080;}
-.tbl{width:100%;border-collapse:collapse;overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;}
 .tbl th{padding:8px 12px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#5c6080;border-bottom:1px solid #1c1f2e;background:#151720;white-space:nowrap;}
 .tbl th:first-child{text-align:left;}
 .tbl td{padding:9px 12px;font-size:12px;border-bottom:1px solid #1c1f2e;text-align:right;white-space:nowrap;}
@@ -64,6 +64,7 @@ h1{font-size:15px;font-weight:700;}
 .dbw{width:60px;height:5px;background:#151720;border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
 .dbf{height:100%;border-radius:3px;}
 .tbl-wrap{overflow-x:auto;}
+.prog{font-size:11px;color:#f5c842;}
 </style>
 </head>
 <body>
@@ -114,7 +115,7 @@ h1{font-size:15px;font-weight:700;}
 <div id="pg-rev" class="page">
   <div class="card">
     <div class="card-hdr">
-      <div><div class="card-title">Daily Portfolio Review</div><div class="card-sub">AI analysis &middot; trends &middot; signals &middot; history</div></div>
+      <div><div class="card-title">Daily Portfolio Review</div><div class="card-sub">AI analysis &middot; trends &middot; signals</div></div>
       <button class="rrb" onclick="doReview()">&#10022; Run Review</button>
     </div>
     <div id="rev-body" style="padding:18px;"><div class="empty">&#10022;<br><br>Click Run Review to generate analysis</div></div>
@@ -135,7 +136,15 @@ var PNAMES={orig:"Original",arjun:"Arjun v2",claude:"Claude Ideal",hfea:"HFEA 55
 var PCOLS={orig:"#f5c842",arjun:"#00e5a0",claude:"#5b8fff",hfea:"#ff4466"};
 var DESC={UPRO:"ProShares S&P500 3x",TQQQ:"ProShares Nasdaq 3x",VOO:"Vanguard S&P500",QQQ:"Invesco Nasdaq 100",IGV:"iShares Software",DBMF:"iMGP Mgd Futures",IAU:"iShares Gold",SOXL:"Direxion Semis 3x",SGOV:"iShares T-Bill",DTCR:"Global X Data Ctr",IXC:"iShares Energy",VGK:"Vanguard Europe",IXJ:"iShares Healthcare",EWJ:"iShares Japan",MP:"MP Materials",TMF:"Direxion Treasury 3x",SPY:"SPDR S&P500",IXN:"iShares Tech",XLI:"SPDR Industrials",FAS:"Direxion Fin 3x",PNQI:"Nasdaq Internet",XLG:"Invesco S&P Top 50",PICK:"iShares Mining",EUFN:"iShares Europe Fin",EZU:"iShares Eurozone",CASH:"Cash"};
 
-var ALL_T=(function(){var s={},r=[];Object.values(PORTS).forEach(function(p){Object.keys(p).forEach(function(t){if(t!=="CASH"&&!s[t]){s[t]=1;r.push(t);}});});r.push("SPY");return r;})();
+var ALL_T=(function(){
+  var s={},r=[];
+  Object.values(PORTS).forEach(function(p){
+    Object.keys(p).forEach(function(t){if(t!=="CASH"&&!s[t]){s[t]=1;r.push(t);}});
+  });
+  r.push("SPY");
+  return r;
+})();
+
 var prices={};
 var revLog=[];
 
@@ -144,7 +153,6 @@ function fc(v){return(v>=0?"+":"")+Number(v).toLocaleString("en-US",{minimumFrac
 function fp(v){return(v>=0?"+":"")+Number(v).toFixed(2)+"%";}
 function clr(v){return v>=0?"pos":"neg";}
 function ge(id){return document.getElementById(id);}
-
 function setStatus(cls,msg){var el=ge("sbar");el.className=cls;el.innerHTML=msg;}
 
 function goTab(id,btn){
@@ -171,33 +179,73 @@ function getBench(){
   return{val:AUM,chg:0,pct:0};
 }
 
-function doLoad(){
-  ge("lupd").textContent="Loading...";
-  setStatus("warn","Fetching prices...");
-  var url="https://financialmodelingprep.com/api/v3/quote/"+ALL_T.join(",")+"?apikey="+KEY;
-  fetch(url)
-    .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+// Fetch in batches of 5 to satisfy FMP free tier limits
+function fetchBatch(tickers){
+  var url="https://financialmodelingprep.com/api/v3/quote/"+tickers.join(",")+"?apikey="+KEY;
+  return fetch(url)
+    .then(function(r){
+      if(!r.ok) throw new Error("FMP HTTP "+r.status+" for "+tickers.join(","));
+      return r.json();
+    })
     .then(function(data){
-      if(!Array.isArray(data))throw new Error("Bad data: "+JSON.stringify(data).slice(0,60));
-      var ok=[],fail=[];
+      if(!Array.isArray(data)) throw new Error("Non-array response");
       data.forEach(function(q){
         if(q.symbol&&typeof q.changesPercentage==="number"&&q.price>0&&Math.abs(q.changesPercentage)<=50){
           prices[q.symbol]={chg:q.changesPercentage,price:q.price,name:q.name,ok:true};
-          ok.push(q.symbol);
-        }else if(q.symbol){
+        } else if(q.symbol){
           prices[q.symbol]={chg:0,price:0,ok:false};
-          fail.push(q.symbol);
         }
       });
-      ALL_T.forEach(function(t){if(!prices[t]){prices[t]={chg:0,price:0,ok:false};fail.push(t);}});
+    });
+}
+
+function doLoad(){
+  ge("lupd").textContent="Loading...";
+  setStatus("warn","Fetching prices in batches...");
+
+  // Split into batches of 5
+  var BATCH=5;
+  var batches=[];
+  for(var i=0;i<ALL_T.length;i+=BATCH){
+    batches.push(ALL_T.slice(i,i+BATCH));
+  }
+
+  // Fetch batches sequentially with small delay to avoid rate limiting
+  var results=[];
+  function fetchNext(idx){
+    if(idx>=batches.length){
+      // All done
+      ALL_T.forEach(function(t){if(!prices[t]){prices[t]={chg:0,price:0,ok:false};}});
       prices["CASH"]={chg:0,price:1,ok:true};
+
+      var ok=ALL_T.filter(function(t){return prices[t]&&prices[t].ok;});
+      var fail=ALL_T.filter(function(t){return !prices[t]||!prices[t].ok;});
+
       var now=new Date();
       ge("lupd").textContent=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
-      if(fail.length===0){setStatus("ok","&#10003; All "+ok.length+" tickers loaded");}
-      else{setStatus("warn","Loaded "+ok.length+"/"+ALL_T.length+" &middot; Missing: "+fail.slice(0,5).join(", "));}
+
+      if(fail.length===0){
+        setStatus("ok","&#10003; All "+ok.length+" tickers loaded &middot; "+now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}));
+      } else {
+        setStatus("warn","Loaded "+ok.length+"/"+ALL_T.length+" &middot; Missing: "+fail.slice(0,5).join(", "));
+      }
       renderAll();
-    })
-    .catch(function(e){setStatus("err","Error: "+e.message);ge("lupd").textContent="Failed";});
+      return;
+    }
+
+    setStatus("warn","Fetching batch "+(idx+1)+"/"+batches.length+"...");
+    fetchBatch(batches[idx])
+      .then(function(){
+        setTimeout(function(){fetchNext(idx+1);},300); // 300ms between batches
+      })
+      .catch(function(e){
+        // Log error but continue with other batches
+        console.warn("Batch "+idx+" failed:",e.message);
+        setTimeout(function(){fetchNext(idx+1);},300);
+      });
+  }
+
+  fetchNext(0);
 }
 
 function renderAll(){
@@ -209,7 +257,8 @@ function renderAll(){
   var cards=["orig","arjun","claude","hfea"].map(function(k){
     var p=pv[k],a=p.pct-B.pct,c=PCOLS[k];
     var lbl=k==="orig"?"Original":k==="arjun"?"Recommended &#9733;":k==="claude"?"Max Upside":"Community";
-    return '<div class="pcard" style="border-top:3px solid '+c+'"><div class="pcard-lbl">'+lbl+'</div>'
+    return'<div class="pcard" style="border-top:3px solid '+c+'">'
+      +'<div class="pcard-lbl">'+lbl+'</div>'
       +'<div class="pcard-name" style="color:'+c+'">'+PNAMES[k]+'</div>'
       +'<div class="pcard-val '+clr(p.chg)+'">'+fd(p.val)+'</div>'
       +'<div class="pcard-chg '+clr(p.chg)+'">'+fc(p.chg)+' today</div>'
@@ -217,27 +266,30 @@ function renderAll(){
       +'<div class="pcard-meta mu">'+p.cov+'% coverage</div></div>';
   }).join("");
 
-  // Summary rows
   var srows=["orig","arjun","claude","hfea"].map(function(k){
     var p=pv[k],a=p.pct-B.pct;
-    return '<tr style="'+(k==="arjun"?"background:rgba(0,229,160,.03)":"")+'"><td style="color:'+PCOLS[k]+'">'+PNAMES[k]+(k==="arjun"?" &#9733;":"")+'</td>'
-      +'<td class="'+clr(p.chg)+'">'+fd(p.val)+'</td><td class="'+clr(p.chg)+'">'+fc(p.chg)+'</td>'
-      +'<td class="'+clr(p.pct)+'">'+fp(p.pct)+'</td><td class="'+clr(a)+'">'+fp(a)+'</td>'
+    return'<tr style="'+(k==="arjun"?"background:rgba(0,229,160,.03)":"")+'"><td style="color:'+PCOLS[k]+'">'+PNAMES[k]+(k==="arjun"?" &#9733;":"")+'</td>'
+      +'<td class="'+clr(p.chg)+'">'+fd(p.val)+'</td>'
+      +'<td class="'+clr(p.chg)+'">'+fc(p.chg)+'</td>'
+      +'<td class="'+clr(p.pct)+'">'+fp(p.pct)+'</td>'
+      +'<td class="'+clr(a)+'">'+fp(a)+'</td>'
       +'<td style="color:'+(p.cov>=90?"#00e5a0":p.cov>=70?"#f5c842":"#ff4466")+'">'+p.cov+'%</td></tr>';
   }).join("")
   +'<tr style="background:#151720"><td style="color:#8899bb">S&amp;P 500</td>'
-  +'<td class="'+clr(B.chg)+'">'+fd(B.val)+'</td><td class="'+clr(B.chg)+'">'+fc(B.chg)+'</td>'
-  +'<td class="'+clr(B.pct)+'">'+fp(B.pct)+'</td><td class="mu">&mdash;</td>'
+  +'<td class="'+clr(B.chg)+'">'+fd(B.val)+'</td>'
+  +'<td class="'+clr(B.chg)+'">'+fc(B.chg)+'</td>'
+  +'<td class="'+clr(B.pct)+'">'+fp(B.pct)+'</td>'
+  +'<td class="mu">&mdash;</td>'
   +'<td class="'+(prices["SPY"]&&prices["SPY"].ok?"pos":"neg")+'">'+(prices["SPY"]&&prices["SPY"].ok?100:0)+'%</td></tr>';
 
   ge("pg-all").innerHTML='<div class="grid2">'+cards+'</div>'
     +'<div class="card"><div class="card-hdr"><div class="card-title">Summary</div>'
     +'<div class="card-sub">Today change vs $122,066</div></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Portfolio</th><th>Value</th>'
-    +'<th>$ Change</th><th>% Today</th><th>vs S&amp;P</th><th>Cov</th></tr></thead>'
-    +'<tbody>'+srows+'</tbody></table></div></div>';
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr>'
+    +'<th>Portfolio</th><th>Value</th><th>$ Change</th><th>% Today</th><th>vs S&amp;P</th><th>Cov</th>'
+    +'</tr></thead><tbody>'+srows+'</tbody></table></div></div>';
 
-  // Individual pages
+  // Individual portfolio pages
   ["orig","arjun","claude","hfea"].forEach(function(k){
     var p=pv[k],a=p.pct-B.pct,c=PCOLS[k];
     var hrows=Object.keys(PORTS[k]).sort(function(a,b){return PORTS[k][b]-PORTS[k][a];}).map(function(t){
@@ -247,11 +299,12 @@ function renderAll(){
       var drift=((curW-wt)/wt)*100,ad=Math.abs(drift);
       var dc=ad>25?"#ff4466":ad>15?"#f5c842":"#00e5a0";
       var ds=chg===null?"N/A":ad>25?"&#9888; REBAL":ad>15?"~Watch":"&#10003; OK";
-      return '<tr><td style="color:'+c+';font-family:monospace;font-weight:600">'+t+'</td>'
+      return'<tr><td style="color:'+c+';font-family:monospace;font-weight:600">'+t+'</td>'
         +'<td style="color:#5c6080;font-size:11px">'+(pr&&pr.name?pr.name:(DESC[t]||""))+'</td>'
         +'<td>'+(pr&&pr.price?fd(pr.price):"&mdash;")+'</td>'
         +'<td class="'+(chg!==null?clr(chg):"mu")+'">'+(chg!==null?fp(chg):"N/A")+'</td>'
-        +'<td>'+(wt*100).toFixed(1)+'%</td><td>'+fd(AUM*wt)+'</td>'
+        +'<td>'+(wt*100).toFixed(1)+'%</td>'
+        +'<td>'+fd(AUM*wt)+'</td>'
         +'<td style="color:'+dc+';font-size:11px">'+ds+'</td></tr>';
     }).join("");
     ge("pg-"+k).innerHTML='<div class="mini3">'
@@ -259,13 +312,13 @@ function renderAll(){
       +'<div class="mini"><div class="mini-l">Today</div><div class="mini-v '+clr(p.chg)+'">'+fp(p.pct)+'</div></div>'
       +'<div class="mini"><div class="mini-l">vs S&amp;P</div><div class="mini-v '+clr(a)+'">'+fp(a)+'</div></div>'
       +'</div><div class="card"><div class="card-hdr"><div class="card-title">'+PNAMES[k]+' Holdings</div>'
-      +'<div class="card-sub">Live prices via FMP</div></div><div class="tbl-wrap">'
-      +'<table class="tbl"><thead><tr><th>Ticker</th><th>Name</th><th>Price</th>'
-      +'<th>% Today</th><th>Target</th><th>Alloc</th><th>Drift</th></tr></thead>'
-      +'<tbody>'+hrows+'</tbody></table></div></div>';
+      +'<div class="card-sub">Live prices via FMP</div></div>'
+      +'<div class="tbl-wrap"><table class="tbl"><thead><tr>'
+      +'<th>Ticker</th><th>Name</th><th>Price</th><th>% Today</th><th>Target</th><th>Alloc</th><th>Drift</th>'
+      +'</tr></thead><tbody>'+hrows+'</tbody></table></div></div>';
   });
 
-  // Drift in review page
+  // Drift monitor
   var drows=Object.keys(PORTS.arjun).sort(function(a,b){return PORTS.arjun[b]-PORTS.arjun[a];}).map(function(t){
     var tgt=PORTS.arjun[t],pr=prices[t];
     var chg=pr&&pr.ok?pr.chg:null;
@@ -274,8 +327,9 @@ function renderAll(){
     var bc=ad>25?"#ff4466":ad>15?"#f5c842":"#00e5a0";
     var ds=chg===null?"N/A":ad>25?"&#9888; REBALANCE":ad>15?"~ Watch":"&#10003; In Band";
     var bw=Math.min(100,50+drift/2);
-    return '<tr><td style="color:#00e5a0;font-family:monospace;font-weight:600">'+t+'</td>'
-      +'<td>'+(tgt*100).toFixed(1)+'%</td><td>'+(curW*100).toFixed(1)+'%</td>'
+    return'<tr><td style="color:#00e5a0;font-family:monospace;font-weight:600">'+t+'</td>'
+      +'<td>'+(tgt*100).toFixed(1)+'%</td>'
+      +'<td>'+(curW*100).toFixed(1)+'%</td>'
       +'<td style="color:'+bc+'">'+(drift>=0?"+":"")+drift.toFixed(1)+'%</td>'
       +'<td><div class="dbw"><div class="dbf" style="width:'+bw+'%;background:'+bc+'"></div></div></td>'
       +'<td style="color:'+bc+';font-size:11px">'+ds+'</td></tr>';
@@ -283,9 +337,9 @@ function renderAll(){
   ge("drift-wrap").innerHTML='<div class="card" style="margin-top:14px">'
     +'<div class="card-hdr"><div class="card-title">Drift Monitor &mdash; Arjun v2</div>'
     +'<div class="card-sub">&plusmn;25% triggers rebalance</div></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Ticker</th><th>Target</th>'
-    +'<th>Est. Now</th><th>Drift</th><th>Band</th><th>Status</th></tr></thead>'
-    +'<tbody>'+drows+'</tbody></table></div></div>';
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr>'
+    +'<th>Ticker</th><th>Target</th><th>Est. Now</th><th>Drift</th><th>Band</th><th>Status</th>'
+    +'</tr></thead><tbody>'+drows+'</tbody></table></div></div>';
 }
 
 function doNews(){
@@ -293,7 +347,7 @@ function doNews(){
   var lines=Object.keys(PORTS.arjun).filter(function(t){return t!=="CASH";}).map(function(t){
     var p=prices[t];return p&&p.ok?t+":"+fp(p.chg):null;
   }).filter(Boolean).join(", ");
-  var prompt="Based on these ETF moves today: "+lines+". Generate a brief news digest. Reply with ONLY valid JSON: {\"holdings\":[{\"ticker\":\"UPRO\",\"headline\":\"brief headline\",\"impact\":\"bullish\"}],\"macro\":[{\"ticker\":\"MACRO\",\"headline\":\"brief headline\",\"impact\":\"neutral\"}]}";
+  var prompt="ETF moves today: "+lines+". Give a news digest. Reply with ONLY valid JSON using these exact keys: {\"holdings\":[{\"ticker\":\"X\",\"headline\":\"brief\",\"impact\":\"bullish\"}],\"macro\":[{\"ticker\":\"MACRO\",\"headline\":\"brief\",\"impact\":\"neutral\"}]}";
   callClaude(prompt,600,function(rev){
     function ri(arr){
       if(!arr||!arr.length)return'<div class="mu" style="font-size:12px">No news</div>';
@@ -315,8 +369,8 @@ function doReview(){
   var pv={};["orig","arjun","claude","hfea"].forEach(function(k){pv[k]=calcPort(k);});
   var pl=Object.keys(PORTS).map(function(k){var p=pv[k];return PNAMES[k]+": "+fp(p.pct)+" cov:"+p.cov+"%";}).join(", ");
   var hl=Object.keys(PORTS.arjun).filter(function(t){return t!=="CASH";}).map(function(t){var p=prices[t];return p&&p.ok?t+":"+fp(p.chg):t+":N/A";}).join(", ");
-  var hist=revLog.length>0?"Previous: "+revLog.slice(-2).map(function(r){return r.d+":"+r.s;}).join(", "):"";
-  var prompt="Daily review for leveraged ETF portfolio. Age 35, aggressive growth. Arjun v2 ACTIVE (34% leveraged). AUM $122k. Portfolios: "+pl+". Holdings: "+hl+". "+hist+" Reply with ONLY valid JSON: {\"summary\":\"one sentence\",\"insights\":[{\"tag\":\"bull\",\"title\":\"title\",\"text\":\"2-3 sentences\"}],\"drift_check\":\"one sentence\",\"forward_look\":\"one sentence\"}";
+  var hist=revLog.length>0?"Past: "+revLog.slice(-2).map(function(r){return r.d+":"+r.s;}).join(", "):"";
+  var prompt="Daily review for leveraged ETF portfolio. Age 35, aggressive growth. Arjun v2 ACTIVE (34% leveraged UPRO/TQQQ/SOXL, 22% foundation VOO/QQQ, 12% hedge DBMF/IAU). AUM 122k. Portfolios: "+pl+". Holdings: "+hl+". "+hist+" Reply with ONLY valid JSON using these exact keys: {\"summary\":\"one sentence\",\"insights\":[{\"tag\":\"bull\",\"title\":\"title\",\"text\":\"detail\"}],\"drift_check\":\"one sentence\",\"forward_look\":\"one sentence\"}";
   callClaude(prompt,700,function(rev){
     var today=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});
     revLog.push({d:today,s:rev.summary||""});
@@ -347,12 +401,13 @@ function callClaude(prompt,tokens,onOk,onErr){
     var txt=((d.content||[]).find(function(b){return b.type==="text";})||{}).text||"{}";
     txt=txt.replace(/```json|```/g,"").trim();
     var s=txt.indexOf("{"),e=txt.lastIndexOf("}");
-    if(s===-1||e===-1)throw new Error("No JSON in response");
+    if(s===-1||e===-1)throw new Error("No JSON found");
     onOk(JSON.parse(txt.slice(s,e+1)));
   }).catch(function(e){onErr(e.message);});
 }
 
 function isMarket(){var h=new Date().getHours(),m=new Date().getMinutes();return(h>9||(h===9&&m>=30))&&h<16;}
+
 window.addEventListener("load",function(){
   doLoad();
   setInterval(function(){if(isMarket())doLoad();},5*60*1000);
